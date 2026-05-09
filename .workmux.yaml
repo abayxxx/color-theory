@@ -95,14 +95,14 @@
 # status_format: true
 
 # Custom icons for agent status display.
-# status_icons:
-#   working: "🤖"
-#   waiting: "💬"
-#   done: "✅"
+status_icons:
+  working: "🤖"
+  waiting: "💬"
+  done: "✅"
 
 #-------------------------------------------------------------------------------
 # Agent & AI
-#-------------------------------------------------------------------------------
+#--------------------------------x  -----------------------------------------------
 
 # Agent command for '<agent>' placeholder in pane commands.
 # Default: "claude"
@@ -224,7 +224,7 @@
 #   #     guest_path: /mnt/data
 #   #     writable: true
 
-agent: gemini
+agent: codex
 panes:
   - command: "<agent>"
     focus: true

@@ -8,8 +8,12 @@ export default function AnalysisLoader() {
         <div className="absolute inset-0 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
       </div>
       <div className="text-center animate-pulse">
-        <h3 className="text-lg font-medium text-neutral-900">Analyzing features</h3>
-        <p className="text-sm text-neutral-500 mt-1">Identifying color palette...</p>
+        <h3 className="text-lg font-medium text-neutral-900">
+          Analyzing features
+        </h3>
+        <p className="text-sm text-neutral-500 mt-1">
+          Identifying color palette...
+        </p>
       </div>
     </div>
   );

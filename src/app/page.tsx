@@ -4,16 +4,29 @@ import { useState } from "react";
 import PhotoUpload from "@/components/PhotoUpload";
 import AnalysisLoader from "@/components/AnalysisLoader";
 import ColorResults from "@/components/ColorResults";
-import { analyzeImage, AnalysisResult } from "@/lib/analyzer";
+import ImageColorPicker from "@/components/ImageColorPicker";
+import { analyzeFromColors, AnalysisResult } from "@/lib/analyzer";
 
 export default function Home() {
-  const [status, setStatus] = useState<"idle" | "analyzing" | "results" | "error">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "picking" | "analyzing" | "results" | "error"
+  >("idle");
   const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [file, setFile] = useState<File | null>(null);
 
-  const handleFileSelected = async (file: File) => {
+  const handleFileSelected = (selectedFile: File) => {
+    setFile(selectedFile);
+    setStatus("picking");
+  };
+
+  const handleColorsPicked = async (colors: {
+    skinTone: string;
+    hairColor: string;
+    eyeColor: string;
+  }) => {
     setStatus("analyzing");
     try {
-      const data = await analyzeImage(file);
+      const data = await analyzeFromColors(colors);
       setResult(data);
       setStatus("results");
     } catch (error) {
@@ -24,6 +37,7 @@ export default function Home() {
 
   const handleReset = () => {
     setResult(null);
+    setFile(null);
     setStatus("idle");
   };
 
@@ -36,7 +50,8 @@ export default function Home() {
             Color Theory
           </h1>
           <p className="text-lg text-neutral-500 max-w-lg mx-auto leading-relaxed">
-            Discover your natural palette. Upload a photo to identify your skin, hair, and eye colors.
+            Discover your natural palette. Upload a photo to identify your skin,
+            hair, and eye colors.
           </p>
         </header>
 
@@ -46,6 +61,14 @@ export default function Home() {
             <div className="w-full max-w-md animate-slide-up">
               <PhotoUpload onFileSelected={handleFileSelected} />
             </div>
+          )}
+
+          {status === "picking" && file && (
+            <ImageColorPicker
+              file={file}
+              onComplete={handleColorsPicked}
+              onCancel={handleReset}
+            />
           )}
 
           {status === "analyzing" && (
@@ -62,7 +85,9 @@ export default function Home() {
 
           {status === "error" && (
             <div className="text-center space-y-4">
-              <p className="text-red-500">Something went wrong. Please try again.</p>
+              <p className="text-red-500">
+                Something went wrong. Please try again.
+              </p>
               <button
                 onClick={handleReset}
                 className="px-6 py-2 bg-neutral-100 rounded-full text-sm font-medium hover:bg-neutral-200 transition-colors"
@@ -76,7 +101,7 @@ export default function Home() {
         {/* Footer info (optional, minimal) */}
         <footer className="text-center pt-24">
           <p className="text-xs uppercase tracking-[0.2em] text-neutral-300 font-medium">
-            Minimalist Studio &copy; 2026
+            Made with ❤️ &copy; {new Date().getFullYear()}
           </p>
         </footer>
       </div>
