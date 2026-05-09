@@ -1,6 +1,6 @@
 "use client";
 
-import { AnalysisResult } from "@/lib/analyzer";
+import { AnalysisResult } from "@/hooks/analyzer";
 
 interface ColorResultsProps {
   result: AnalysisResult;
@@ -8,18 +8,30 @@ interface ColorResultsProps {
 }
 
 const seasonalDescriptions = {
-  'Light Spring': "Fresh and delicate. You are dominated by light, warm, and clear tones.",
-  'Warm Spring': "Vibrant and golden. Your palette is purely warm, bright, and energetic.",
-  'Clear Spring': "Bright and high-contrast. You shine in the most vivid, warm-leaning colors.",
-  'Light Summer': "Soft and airy. Your palette is dominated by light, cool, and delicate tones.",
-  'Cool Summer': "Elegant and purely cool. You look best in soft, muted, blue-based colors.",
-  'Soft Summer': "Muted and sophisticated. Your palette is a blend of soft grey and cool tones.",
-  'Soft Autumn': "Earthy and gentle. You are flattered by muted, warm, and low-contrast tones.",
-  'Warm Autumn': "Rich and organic. Your palette is purely warm, golden, and deeply earthy.",
-  'Deep Autumn': "Mysterious and intense. You shine in dark, warm, and saturated earthy tones.",
-  'Clear Winter': "Brilliant and high-contrast. Your palette is vivid, cool-leaning, and crisp.",
-  'Cool Winter': "Striking and purely cool. You look best in bright, high-contrast, blue-based colors.",
-  'Deep Winter': "Bold and dramatic. You are dominated by dark, cool, and high-intensity colors."
+  "Light Spring":
+    "Fresh and delicate. You are dominated by light, warm, and clear tones.",
+  "Warm Spring":
+    "Vibrant and golden. Your palette is purely warm, bright, and energetic.",
+  "Clear Spring":
+    "Bright and high-contrast. You shine in the most vivid, warm-leaning colors.",
+  "Light Summer":
+    "Soft and airy. Your palette is dominated by light, cool, and delicate tones.",
+  "Cool Summer":
+    "Elegant and purely cool. You look best in soft, muted, blue-based colors.",
+  "Soft Summer":
+    "Muted and sophisticated. Your palette is a blend of soft grey and cool tones.",
+  "Soft Autumn":
+    "Earthy and gentle. You are flattered by muted, warm, and low-contrast tones.",
+  "Warm Autumn":
+    "Rich and organic. Your palette is purely warm, golden, and deeply earthy.",
+  "Deep Autumn":
+    "Mysterious and intense. You shine in dark, warm, and saturated earthy tones.",
+  "Clear Winter":
+    "Brilliant and high-contrast. Your palette is vivid, cool-leaning, and crisp.",
+  "Cool Winter":
+    "Striking and purely cool. You look best in bright, high-contrast, blue-based colors.",
+  "Deep Winter":
+    "Bold and dramatic. You are dominated by dark, cool, and high-intensity colors.",
 };
 
 export default function ColorResults({ result, onReset }: ColorResultsProps) {
@@ -43,7 +55,11 @@ export default function ColorResults({ result, onReset }: ColorResultsProps) {
             </p>
           </div>
           <p className="text-sm text-neutral-500 leading-relaxed px-4">
-            {seasonalDescriptions[result.season as keyof typeof seasonalDescriptions]}
+            {
+              seasonalDescriptions[
+                result.season as keyof typeof seasonalDescriptions
+              ]
+            }
           </p>
         </div>
       )}
@@ -51,7 +67,10 @@ export default function ColorResults({ result, onReset }: ColorResultsProps) {
       {/* Extracted Colors - Larger & More Prominent */}
       <div className="flex justify-center gap-6">
         {items.map((item) => (
-          <div key={item.label} className="flex flex-col items-center space-y-2 p-4 rounded-3xl bg-neutral-50 border border-neutral-100 min-w-[120px]">
+          <div
+            key={item.label}
+            className="flex flex-col items-center space-y-2 p-4 rounded-3xl bg-neutral-50 border border-neutral-100 min-w-[120px]"
+          >
             <div
               className="w-16 h-16 rounded-2xl shadow-inner border border-white/20"
               style={{ backgroundColor: item.data.hex }}
@@ -77,7 +96,7 @@ export default function ColorResults({ result, onReset }: ColorResultsProps) {
             </h3>
             <div className="h-[1px] flex-1 bg-neutral-100" />
           </div>
-          
+
           <div className="flex flex-wrap justify-center gap-4">
             {result.flatteringColors.map((color) => (
               <div key={color.name} className="group relative">
@@ -104,7 +123,7 @@ export default function ColorResults({ result, onReset }: ColorResultsProps) {
             </h3>
             <div className="h-[1px] flex-1 bg-red-50" />
           </div>
-          
+
           <div className="flex flex-wrap justify-center gap-4">
             {result.avoidColors.map((color) => (
               <div key={color.name} className="group relative">
@@ -120,7 +139,7 @@ export default function ColorResults({ result, onReset }: ColorResultsProps) {
           </div>
         </div>
       )}
-      
+
       <div className="flex justify-center pt-8">
         <button
           onClick={onReset}

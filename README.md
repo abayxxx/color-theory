@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎨 Color Theory
 
-## Getting Started
+A professional-grade personal color analysis tool built with Next.js 15. This application helps users discover their natural seasonal palette by analyzing skin, hair, and eye colors using a sophisticated 12-season flow system.
 
-First, run the development server:
+## ✨ Key Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Professional 12-Season Analysis:** Goes beyond the basic 4 seasons to provide a detailed sub-season profile (e.g., _Clear Winter_, _Soft Autumn_, _Deep Winter_) based on dominant characteristics.
+- **Precision Color Picker:** Interactive photo preview with:
+  - **8x Zoom & Pan:** Precisely target features in high-resolution photos.
+  - **Offscreen Sampling:** 100% color accuracy mapping display coordinates to source pixels.
+  - **Real-time Magnifier:** Live hex-code preview under the cursor.
+- **Curated Palettes:**
+  - **20 Flattering Colors:** A unique, non-repetitive palette of your best shades.
+  - **10 "Colors to Avoid":** Highlights shades that might clash with your natural undertones.
+- **Modern Aesthetic:** Clean, minimalist UI inspired by premium studios, featuring the _Space Grotesk_ typeface and elegant editorial serif typography.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Tech Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Framework:** [Next.js 15](https://nextjs.org/) (App Router, Turbopack)
+- **Library:** [React 19](https://react.dev/)
+- **Styling:** [Tailwind CSS 4](https://tailwindcss.com/)
+- **Typography:** [Space Grotesk](https://fonts.google.com/specimen/Space+Grotesk) & [Plus Jakarta Sans](https://fonts.google.com/specimen/Plus+Jakarta+Sans)
+- **Language:** TypeScript
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🧪 The Science
 
-## Learn More
+The analysis engine uses an advanced HSL (Hue, Saturation, Lightness) algorithm to evaluate three primary axes:
 
-To learn more about Next.js, take a look at the following resources:
+1. **Temperature:** Warm (Golden/Peach) vs. Cool (Blue/Pink) undertones.
+2. **Value:** Light vs. Deep features.
+3. **Chroma:** Clear (Bright/High Contrast) vs. Soft (Muted/Low Contrast).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+By identifying the **Dominant Characteristic**, the tool assigns one of the 12 flow seasons, mirroring the methodology used by professional image consultants.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🚀 Getting Started
 
-## Deploy on Vercel
+1. **Install Dependencies:**
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   ```bash
+   npm install
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+2. **Run Development Server:**
+
+   ```bash
+   npm run dev
+   ```
+
+3. **Build for Production:**
+   ```bash
+   npm run build
+   ```
+
+## 📝 License
+
+abayxxx © 2026. Built with focus on precision and aesthetic.

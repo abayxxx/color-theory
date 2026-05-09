@@ -5,7 +5,7 @@ import PhotoUpload from "@/components/PhotoUpload";
 import AnalysisLoader from "@/components/AnalysisLoader";
 import ColorResults from "@/components/ColorResults";
 import ImageColorPicker from "@/components/ImageColorPicker";
-import { analyzeFromColors, AnalysisResult } from "@/lib/analyzer";
+import { analyzeFromColors, AnalysisResult } from "@/hooks/analyzer";
 
 export default function Home() {
   const [status, setStatus] = useState<
