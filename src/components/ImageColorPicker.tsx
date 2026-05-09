@@ -37,7 +37,9 @@ export default function ImageColorPicker({
   const imgRef = useRef<HTMLImageElement>(null);
   const offscreenCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const dragStartPos = useRef({ x: 0, y: 0 });
-  const lastMousePos = useRef({ x: 0, y: 0 });
+  const initialTouchPos = useRef({ x: 0, y: 0 });
+  const isTouchInteraction = useRef(false);
+  const lastStepTime = useRef(0);
 
   const steps: { key: PickingState; label: string }[] = useMemo(
     () => [
@@ -70,14 +72,9 @@ export default function ImageColorPicker({
     if (!img || !canvas) return null;
 
     const rect = img.getBoundingClientRect();
-
-    // 1. Get position relative to the displayed image element (including zoom/pan)
     const xOnElem = clientX - rect.left;
     const yOnElem = clientY - rect.top;
 
-    // 2. Map displayed position to original image pixels
-    // Since we use object-fit: contain, the image might not fill the rect perfectly
-    // but getBoundingClientRect on the <img> with zoom/pan reflects the actual displayed size.
     const x = (xOnElem / rect.width) * canvas.width;
     const y = (yOnElem / rect.height) * canvas.height;
 
@@ -94,20 +91,87 @@ export default function ImageColorPicker({
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
+    if (isTouchInteraction.current) return;
     setMousePos({ x: e.clientX, y: e.clientY });
     const color = getColorAtPosition(e.clientX, e.clientY);
     setHoverColor(color);
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
+    isTouchInteraction.current = false;
     setIsDragging(true);
     dragStartPos.current = { x: e.clientX - offset.x, y: e.clientY - offset.y };
-    lastMousePos.current = { x: e.clientX, y: e.clientY };
+    initialTouchPos.current = { x: e.clientX, y: e.clientY };
+  };
+
+  // Mobile Touch Handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    isTouchInteraction.current = true;
+    const touch = e.touches[0];
+    setIsDragging(true);
+    dragStartPos.current = {
+      x: touch.clientX - offset.x,
+      y: touch.clientY - offset.y,
+    };
+    initialTouchPos.current = { x: touch.clientX, y: touch.clientY };
+
+    // Show magnifier on touch start
+    setMousePos({ x: touch.clientX, y: touch.clientY });
+    const color = getColorAtPosition(touch.clientX, touch.clientY);
+    setHoverColor(color);
+
+    // Do NOT preventDefault here to allow buttons and UI to still work
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    const touch = e.touches[0];
+
+    setOffset({
+      x: touch.clientX - dragStartPos.current.x,
+      y: touch.clientY - dragStartPos.current.y,
+    });
+
+    setMousePos({ x: touch.clientX, y: touch.clientY });
+    const color = getColorAtPosition(touch.clientX, touch.clientY);
+    setHoverColor(color);
+
+    if (e.cancelable) e.preventDefault();
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    const touch = e.changedTouches[0];
+
+    const dist = Math.sqrt(
+      Math.pow(touch.clientX - initialTouchPos.current.x, 2) +
+        Math.pow(touch.clientY - initialTouchPos.current.y, 2),
+    );
+
+    // If it was a tap (small movement), pick the color
+    if (dist < 15) {
+      const now = Date.now();
+      if (now - lastStepTime.current > 300) {
+        const color = getColorAtPosition(touch.clientX, touch.clientY);
+        if (color) {
+          setColors((prev) => ({ ...prev, [currentStep]: color }));
+          const currentIndex = steps.findIndex((s) => s.key === currentStep);
+          if (currentIndex < steps.length - 1) {
+            setCurrentStep(steps[currentIndex + 1].key);
+            lastStepTime.current = now;
+          }
+        }
+      }
+    }
+
+    setIsDragging(false);
+    setHoverColor(null);
+    if (e.cancelable) e.preventDefault(); // Stop ghost mouse events
   };
 
   const handleGlobalMouseMove = useCallback(
     (e: MouseEvent) => {
-      if (isDragging) {
+      if (isDragging && !isTouchInteraction.current) {
         setOffset({
           x: e.clientX - dragStartPos.current.x,
           y: e.clientY - dragStartPos.current.y,
@@ -119,20 +183,25 @@ export default function ImageColorPicker({
 
   const handleGlobalMouseUp = useCallback(
     (e: MouseEvent) => {
-      if (isDragging) {
-        // If movement was very small, treat as a click
+      if (isDragging && !isTouchInteraction.current) {
         const dist = Math.sqrt(
-          Math.pow(e.clientX - lastMousePos.current.x, 2) +
-            Math.pow(e.clientY - lastMousePos.current.y, 2),
+          Math.pow(e.clientX - initialTouchPos.current.x, 2) +
+            Math.pow(e.clientY - initialTouchPos.current.y, 2),
         );
 
         if (dist < 5) {
-          const color = getColorAtPosition(e.clientX, e.clientY);
-          if (color) {
-            setColors((prev) => ({ ...prev, [currentStep]: color }));
-            const currentIndex = steps.findIndex((s) => s.key === currentStep);
-            if (currentIndex < steps.length - 1) {
-              setCurrentStep(steps[currentIndex + 1].key);
+          const now = Date.now();
+          if (now - lastStepTime.current > 300) {
+            const color = getColorAtPosition(e.clientX, e.clientY);
+            if (color) {
+              setColors((prev) => ({ ...prev, [currentStep]: color }));
+              const currentIndex = steps.findIndex(
+                (s) => s.key === currentStep,
+              );
+              if (currentIndex < steps.length - 1) {
+                setCurrentStep(steps[currentIndex + 1].key);
+                lastStepTime.current = now;
+              }
             }
           }
         }
@@ -163,7 +232,7 @@ export default function ImageColorPicker({
   const isComplete = colors.skinTone && colors.hairColor && colors.eyeColor;
 
   return (
-    <div className="w-full max-w-2xl flex flex-col items-center space-y-6 animate-fade-in scroll-mt-24">
+    <div className="w-full max-w-2xl flex flex-col items-center space-y-6 animate-fade-in scroll-mt-24 px-4 sm:px-0">
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-bold text-neutral-900">
           Pick your colors
@@ -173,20 +242,16 @@ export default function ImageColorPicker({
           <span className="font-semibold text-black uppercase">
             {steps.find((s) => s.key === currentStep)?.label}
           </span>
-          . Use{" "}
-          <kbd className="px-1.5 py-0.5 rounded bg-neutral-100 border text-[10px]">
-            Cmd/Ctrl + Scroll
-          </kbd>{" "}
-          to zoom.
+          . Use buttons to zoom.
         </p>
       </div>
 
-      <div className="flex flex-wrap justify-center gap-3">
+      <div className="flex flex-wrap justify-center gap-2">
         {steps.map((step) => (
           <button
             key={step.key}
             onClick={() => setCurrentStep(step.key)}
-            className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all
+            className={`px-3 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all
               ${
                 currentStep === step.key
                   ? "bg-black text-white shadow-lg ring-2 ring-black ring-offset-2"
@@ -211,8 +276,7 @@ export default function ImageColorPicker({
       <div
         ref={containerRef}
         onWheel={handleWheel}
-        className="relative w-full aspect-square md:aspect-auto rounded-3xl overflow-hidden shadow-2xl bg-neutral-50 cursor-crosshair border border-neutral-200 touch-none select-none"
-        style={{ minHeight: "450px" }}
+        className="relative w-full aspect-square rounded-3xl overflow-hidden shadow-2xl bg-neutral-50 cursor-crosshair border border-neutral-200 touch-none select-none"
       >
         {!imageLoaded && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-10">
@@ -227,8 +291,10 @@ export default function ImageColorPicker({
           }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
-          {/* Using <img> for display is better for browser optimizations and zoom */}
           <img
             ref={imgRef}
             src={URL.createObjectURL(file)}
@@ -243,7 +309,7 @@ export default function ImageColorPicker({
         {/* Magnifier / Tooltip */}
         {hoverColor && (
           <div
-            className="fixed pointer-events-none z-50 flex flex-col items-center space-y-2 -translate-x-1/2 -translate-y-[120%]"
+            className="fixed pointer-events-none z-50 flex flex-col items-center space-y-2 -translate-x-1/2 -translate-y-[130%]"
             style={{ left: mousePos.x, top: mousePos.y }}
           >
             <div className="bg-white p-1 rounded-full shadow-2xl border-2 border-white ring-1 ring-black/5 overflow-hidden">
@@ -260,14 +326,14 @@ export default function ImageColorPicker({
                 {hoverColor}
               </div>
             </div>
-            <div className="bg-black text-white text-[10px] px-2 py-1 rounded-md font-bold uppercase tracking-widest shadow-lg">
-              Click to Pick
+            <div className="bg-black/80 backdrop-blur text-white text-[9px] px-3 py-1.5 rounded-full font-bold uppercase tracking-widest shadow-lg">
+              {isDragging && zoom > 1 ? "Panning..." : "Release to Pick"}
             </div>
           </div>
         )}
 
         {/* Zoom Controls */}
-        <div className="absolute bottom-6 right-6 flex flex-col space-y-3">
+        <div className="absolute bottom-4 right-4 flex flex-col space-y-3">
           <button
             type="button"
             onClick={(e) => {
@@ -302,17 +368,17 @@ export default function ImageColorPicker({
         </div>
       </div>
 
-      <div className="flex space-x-4 w-full justify-center">
+      <div className="flex space-x-3 w-full justify-center">
         <button
           onClick={onCancel}
-          className="px-10 py-4 bg-neutral-100 text-neutral-600 rounded-full text-sm font-bold hover:bg-neutral-200 transition-all"
+          className="flex-1 max-w-[140px] py-4 bg-neutral-100 text-neutral-600 rounded-full text-sm font-bold hover:bg-neutral-200 transition-all"
         >
           Cancel
         </button>
         <button
           disabled={!isComplete}
           onClick={() => onComplete(colors as any)}
-          className={`px-10 py-4 rounded-full text-sm font-bold transition-all shadow-xl
+          className={`flex-1 max-w-[200px] py-4 rounded-full text-sm font-bold transition-all shadow-xl
             ${
               isComplete
                 ? "bg-black text-white hover:bg-neutral-800 scale-100 active:scale-95"
